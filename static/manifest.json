@@ -1,0 +1,24 @@
+{
+  "name": "SporoSentinel",
+  "short_name": "SporoSentinel",
+  "description": "Offline-First Fungal Contamination Intelligence Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0b0e",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "/static/images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

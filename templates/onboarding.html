@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding - SporoSentinel{% endblock %}
+
+{% block content %}
+<div class="container" style="display: flex; align-items: center; justify-content: center; flex: 1; padding: 2rem 1.5rem;">
+    <div class="onboard-box animated-fade" style="margin: 0; max-width: 580px; width: 100%;">
+        <h2 style="font-size: 1.75rem; margin-bottom: 0.5rem; text-align: center;" data-trn="onboarding_title">Welcome to SporoSentinel</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 2rem;" data-trn="onboarding_subtitle">
+            Configure your localized fungal intelligence settings
+        </p>
+
+        <form id="onboard-form" action="/api/users/onboard" method="post">
+            <!-- Language Selector Grid -->
+            <div class="input-group">
+                <label class="input-label" data-trn="select_lang" style="margin-bottom: 0.75rem;">Choose Your Language</label>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; max-height: 240px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(0,0,0,0.15);">
+                    <div style="display: contents;" id="languages-grid">
+                        <!-- Filled by Javascript dynamically with localized labels -->
+                    </div>
+                </div>
+                <input type="hidden" name="language_pref" id="selected-lang-input" value="en">
+            </div>
+
+            <!-- Region Selector -->
+            <div class="input-group" style="margin-top: 1.5rem; margin-bottom: 2rem;">
+                <label for="region" class="input-label" data-trn="select_region">Select Storage Region</label>
+                <select id="region" name="region" class="select-control" style="width: 100%;">
+                    <option value="High-humidity Coastal" data-trn="option_coastal">High-humidity Coastal (Penicillium & Aspergillus prone)</option>
+                    <option value="Aspergillus-prone South" data-trn="option_south">Aspergillus-prone South (High soil-borne aflatoxins)</option>
+                    <option value="Northern Grain Belt" data-trn="option_north">Northern Grain Belt (Cooler dry climate)</option>
+                    <option value="Western Drylands" data-trn="option_drylands">Western Drylands (Arid conditions)</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 0.8rem; font-size: 1rem;" data-trn="save_continue">
+                Save & Continue
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // List of 19 languages with their native/localized names
+    const languageList = [
+        { code: "en", name: "English" },
+        { code: "hi", name: "हिन्दी (Hindi)" },
+        { code: "bn", name: "বাংলা (Bengali)" },
+        { code: "mr", name: "मराठी (Marathi)" },
+        { code: "te", name: "తెలుగు (Telugu)" },
+        { code: "ta", name: "தமிழ் (Tamil)" },
+        { code: "gu", name: "ગુજરાતી (Gujarati)" },
+        { code: "kn", name: "ಕನ್ನಡ (Kannada)" },
+        { code: "ml", name: "മലയാളം (Malayalam)" },
+        { code: "pa", name: "ਪੰਜਾਬੀ (Punjabi)" },
+        { code: "ur", name: "اردو (Urdu)" },
+        { code: "or", name: "ଓଡ଼ିଆ (Odia)" },
+        { code: "zh", name: "中文 (Chinese)" },
+        { code: "es", name: "Español (Spanish)" },
+        { code: "ar", name: "العربية (Arabic)" },
+        { code: "fr", name: "Français (French)" },
+        { code: "pt", name: "Português (Portuguese)" },
+        { code: "ru", name: "Русский (Russian)" },
+        { code: "ja", name: "日本語 (Japanese)" }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const grid = document.getElementById("languages-grid");
+        const langInput = document.getElementById("selected-lang-input");
+        
+        // Load initial preferred language from localStorage
+        const storedLang = localStorage.getItem("sporo_lang") || "en";
+        langInput.value = storedLang;
+
+        languageList.forEach(lang => {
+            const btn = document.createElement("div");
+            btn.type = "button";
+            btn.style.padding = "0.75rem";
+            btn.style.border = "1px solid var(--border-color)";
+            btn.style.borderRadius = "0.35rem";
+            btn.style.cursor = "pointer";
+            btn.style.textAlign = "center";
+            btn.style.fontSize = "0.85rem";
+            btn.style.fontWeight = "500";
+            btn.style.background = lang.code === storedLang ? "rgba(var(--accent-primary-rgb), 0.15)" : "transparent";
+            btn.style.borderColor = lang.code === storedLang ? "var(--accent-primary)" : "var(--border-color)";
+            btn.style.color = lang.code === storedLang ? "var(--text-primary)" : "var(--text-secondary)";
+            btn.innerText = lang.name;
+            btn.dataset.code = lang.code;
+
+            btn.addEventListener("click", () => {
+                // Remove selected styling from siblings
+                Array.from(grid.children).forEach(child => {
+                    child.style.background = "transparent";
+                    child.style.borderColor = "var(--border-color)";
+                    child.style.color = "var(--text-secondary)";
+                });
+                
+                // Set active style
+                btn.style.background = "rgba(var(--accent-primary-rgb), 0.15)";
+                btn.style.borderColor = "var(--accent-primary)";
+                btn.style.color = "var(--text-primary)";
+                
+                // Update hidden input and localstorage
+                langInput.value = lang.code;
+                localStorage.setItem("sporo_lang", lang.code);
+                
+                // Sync with main header language selector
+                const langSel = document.getElementById("lang-selector");
+                if (langSel) {
+                    langSel.value = lang.code;
+                }
+                
+                // Dynamically translate onboarding form strings
+                translateDOM(lang.code);
+            });
+            
+            grid.appendChild(btn);
+        });
+
+        // Form Submission Interceptor to save settings locally
+        document.getElementById("onboard-form").addEventListener("submit", (e) => {
+            localStorage.setItem("sporo_lang", langInput.value);
+            localStorage.setItem("sporo_region", document.getElementById("region").value);
+        });
+    });
+</script>
+{% endblock %}

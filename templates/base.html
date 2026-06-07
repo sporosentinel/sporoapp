@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}SporoSentinel{% endblock %}</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+    
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Design System -->
+    <link rel="stylesheet" href="/static/css/styles.css?v=3">
+    
+    <!-- MapLibre & PMTiles from CDN (cached by service worker) -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+    
+    <!-- Local Translation Dictionary -->
+    <script src="/static/js/translations.js?v=3"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- PWA Installation Promo bar -->
+    <div id="pwa-install-promo" class="pwa-promo">
+        <span>Install SporoSentinel on your home screen for complete offline capability</span>
+        <button id="pwa-install-btn">Install App</button>
+    </div>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-bar">
+            <div class="logo-group">
+                <div class="logo-icon">S</div>
+                <div>
+                    <h1 class="logo-text" data-trn="title">SporoSentinel</h1>
+                    <p style="font-size: 0.7rem; color: var(--text-secondary);" data-trn="tagline">Fungal Contamination Intelligence</p>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Online/Offline Badge -->
+                <div id="connection-status" class="status-badge status-online">
+                    <span class="status-dot"></span>
+                    <span id="connection-status-text" data-trn="status_online">Online • Synced</span>
+                </div>
+                
+                <!-- Language Selector Dropdown -->
+                <select id="lang-selector" class="select-control" style="padding: 0.45rem 0.5rem; font-size: 0.8rem; background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); cursor: pointer; border-radius: 0.35rem;">
+                    <option value="en">English</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="bn">বাংলা (Bengali)</option>
+                    <option value="mr">मराठी (Marathi)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                    <option value="gu">ગુજરાતી (Gujarati)</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    <option value="ml">മലയാളം (Malayalam)</option>
+                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="ur">اردو (Urdu)</option>
+                    <option value="or">ଓଡ଼ିଆ (Odia)</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="pt">Português (Portuguese)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                </select>
+                
+                <!-- Dark Mode Toggle -->
+                <button id="theme-toggle" class="btn btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;">
+                    🌙 <span data-trn="theme_dark">Dark Mode</span>
+                </button>
+                
+                {% if current_user %}
+                    <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
+                        👤 {{ current_user.username }}
+                    </span>
+                    <a href="/logout" class="btn btn-secondary" style="padding: 0.45rem 0.75rem; font-size: 0.8rem;" data-trn="logout">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main style="flex: 1; display: flex; flex-direction: column;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global App Controller JS -->
+    <script src="/static/js/main.js?v=3"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Portal - SporoSentinel{% endblock %}
+
+{% block content %}
+<div class="container animated-fade">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.85rem;" data-trn="role_farmer">Farmer Offline-First Dashboard</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                <span data-trn="active_region">Active Region:</span> <strong id="farmer-region-display" style="color: var(--accent-primary);">{{ current_user.region }}</strong>
+            </p>
+        </div>
+        
+        <!-- Offline Sync Queue Badge -->
+        <div id="sync-banner" style="display: none; align-items: center; gap: 0.75rem; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); padding: 0.5rem 1rem; border-radius: 0.5rem;">
+            <span style="font-size: 0.85rem; color: var(--text-primary);" id="sync-count-text">
+                <span id="sync-count">0</span> <span data-trn="sync_pending">scan(s) pending sync in local queue</span>
+            </span>
+            <button id="sync-now-btn" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" data-trn="sync_btn">Sync Scans Now</button>
+        </div>
+    </div>
+
+    <!-- Grid Container -->
+    <div class="card-grid">
+        <!-- 1. Scanner Card -->
+        <div class="card">
+            <h3 class="card-title" data-trn="scan_title">Camera Analysis (Strip Scan)</h3>
+            <p class="card-subtitle" data-trn="scan_subtitle">Upload a photo of your test strip for instant results</p>
+            
+            <form id="scan-form" enctype="multipart/form-data">
+                <div class="uploader-area" id="drop-zone">
+                    <div class="uploader-icon">📷</div>
+                    <p style="font-size: 0.85rem; margin-bottom: 0.5rem; color: var(--text-primary); font-weight: 500;" data-trn="drag_drop_text">
+                        Drag and drop your scan or <span style="color: var(--accent-primary); text-decoration: underline;">browse files</span>
+                    </p>
+                    <p style="font-size: 0.7rem; color: var(--text-secondary);" data-trn="uploader_supports">Supports PNG, JPG, JPEG up to 10MB</p>
+                    <input type="file" id="file-input" name="image" class="file-input" accept="image/*">
+                </div>
+            </form>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" id="scan-submit-btn" class="btn" style="width: 100%; display: none;" data-trn="analyze_btn">Analyze Scan</button>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem;">
+                    <button id="load-sample-safe-btn" class="btn btn-secondary" style="padding: 0.5rem 0.25rem; font-size: 0.7rem;" data-trn="load_sample_safe">Load Safe</button>
+                    <button id="load-sample-caution-btn" class="btn btn-secondary" style="padding: 0.5rem 0.25rem; font-size: 0.7rem;" data-trn="load_sample_btn">Load Warning</button>
+                    <button id="load-sample-critical-btn" class="btn btn-secondary" style="padding: 0.5rem 0.25rem; font-size: 0.7rem;" data-trn="load_sample_critical">Load Critical</button>
+                </div>
+            </div>
+
+            <!-- Preview Image -->
+            <div id="image-preview-container" style="display: none; margin-top: 1rem; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border-color);">
+                <img id="image-preview" src="" style="width: 100%; height: auto; display: block;" alt="Uploaded Strip Preview">
+            </div>
+        </div>
+
+        <!-- 2. Results & CCI Gauge Card -->
+        <div class="card" id="results-card" style="opacity: 0.5;">
+            <h3 class="card-title" data-trn="results_title">Analysis Results</h3>
+            <p class="card-subtitle" data-trn="cci_label">Combined Contamination Index (CCI)</p>
+            
+            <div class="gauge-container">
+                <svg class="gauge-svg">
+                    <circle class="gauge-track" cx="80" cy="80" r="65"></circle>
+                    <circle id="cci-gauge-fill" class="gauge-fill" cx="80" cy="80" r="65" stroke-dasharray="408.4" stroke-dashoffset="408.4"></circle>
+                </svg>
+                <div class="gauge-center-text">
+                    <span class="gauge-value" id="cci-display">0.0</span>
+                    <span class="gauge-label" data-trn="cci_gauge_label">CCI</span>
+                </div>
+            </div>
+
+            <!-- Individual Indices: FI & VI -->
+            <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                        <span data-trn="fi_label" style="font-weight: 500;">Fungal Index (FI)</span>
+                        <span id="fi-val" style="font-weight: 700; color: var(--accent-primary);">0.0</span>
+                    </div>
+                    <div style="height: 0.35rem; width:100%; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                        <div id="fi-bar" style="height:100%; width:0%; background:var(--accent-primary); transition: width 1s ease;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                        <span data-trn="vi_label" style="font-weight: 500;">VOC Index (VI)</span>
+                        <span id="vi-val" style="font-weight: 700; color: var(--accent-primary);">0.0</span>
+                    </div>
+                    <div style="height: 0.35rem; width:100%; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                        <div id="vi-bar" style="height:100%; width:0%; background:var(--accent-primary); transition: width 1s ease;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metadata table -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; font-size: 0.8rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <div>
+                    <p style="color: var(--text-secondary);" data-trn="risk_label">Risk Level</p>
+                    <div id="risk-badge" class="risk-badge risk-safe" style="margin-top: 0.25rem; font-size: 0.75rem; padding: 0.2rem;">Safe</div>
+                </div>
+                <div>
+                    <p style="color: var(--text-secondary);" data-trn="confidence_label">Confidence</p>
+                    <p id="confidence-val" style="font-weight: 700; margin-top: 0.25rem;">0.0%</p>
+                </div>
+                <div>
+                    <p style="color: var(--text-secondary);" data-trn="trend_label">Contamination Trend</p>
+                    <p id="trend-val" style="font-weight: 700; color: var(--color-safe); margin-top: 0.25rem;">Declining</p>
+                </div>
+                <div>
+                    <p style="color: var(--text-secondary);" data-trn="euclidean_label">Euclidean Dist.</p>
+                    <p id="euclidean-val" style="font-weight: 700; margin-top: 0.25rem;">0.00</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations & Voice Guidance -->
+    <div class="card" style="margin-top: 1.5rem;" id="rec-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+                <h3 class="card-title" data-trn="rec_title">Intelligent Remediation Recommendations</h3>
+                <p class="card-subtitle" style="margin-bottom:0;" data-trn="rec_title_sub">Combines CCI thresholds with local database guidelines</p>
+            </div>
+            
+            <button id="tts-btn" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                🔊 <span id="tts-btn-text" data-trn="listen_rec">Listen to Recommendations</span>
+            </button>
+        </div>
+        
+        <div id="recommendation-content" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6;">
+            <p style="color: var(--text-secondary); text-align: center;" data-trn="rec_empty_text">Perform or load a scan to view remediation instructions.</p>
+        </div>
+    </div>
+
+    <!-- AI Forecasting & Predictive Modeling Card -->
+    <div class="card" style="margin-top: 1.5rem;" id="forecast-card">
+        <h3 class="card-title" data-trn="forecast_title">Predictive Contamination Forecasting (AI)</h3>
+        <p class="card-subtitle" data-trn="forecast_title_sub">Algorithmic risk prediction for safe storage planning</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(0,0,0,0.1);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary);" data-trn="forecast_trend">Predicted Trend (14 Days)</p>
+                <p id="ai-trend" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.25rem;">N/A</p>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(0,0,0,0.1);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary);" data-trn="forecast_days">Days to Critical Threshold (CCI 80)</p>
+                <p id="ai-days" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.25rem;">N/A</p>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(0,0,0,0.1);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary);" data-trn="remediation_cost">Est. Remediation Cost</p>
+                <p id="ai-cost" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.25rem;">N/A</p>
+            </div>
+            <div style="padding: 1rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(0,0,0,0.1);">
+                <p style="font-size: 0.75rem; color: var(--text-secondary);" data-trn="success_rate">Success Probability</p>
+                <p id="ai-success" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.25rem;">N/A</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Offline Maps Card -->
+    <div class="card" style="margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h3 class="card-title" data-trn="map_title">Regional Risk Map & Overlays</h3>
+                <p class="card-subtitle" style="margin-bottom:0;" data-trn="map_subtitle">Offline vector map (PMTiles) with active risk overlays</p>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="download-tiles-btn" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;" data-trn="download_map_btn">Download Regional Vector Map (Offline)</button>
+                <button id="load-risk-overlay-btn" class="btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;" data-trn="load_local_risk_btn">Load Local Risk Overlay</button>
+            </div>
+        </div>
+
+        <div id="map" class="map-container"></div>
+    </div>
+
+    <!-- 4. Historical Records -->
+    <div class="card" style="margin-top: 1.5rem;">
+        <h3 class="card-title" data-trn="history_title">Historical Contamination Log</h3>
+        <p class="card-subtitle" data-trn="history_subtitle">Log of previously processed test strip scans</p>
+        
+        <div class="table-container">
+            <table id="scan-log-table">
+                <thead>
+                    <tr>
+                        <th data-trn="update_col">Timestamp</th>
+                        <th data-trn="cci_label">CCI Score</th>
+                        <th data-trn="fi_label">FI Score</th>
+                        <th data-trn="vi_label">VI Score</th>
+                        <th data-trn="risk_label">Risk Level</th>
+                        <th data-trn="trend_label">Trend</th>
+                        <th data-trn="col_calib_dist">Calib Dist.</th>
+                        <th data-trn="col_sync">Sync</th>
+                    </tr>
+                </thead>
+                <tbody id="scan-log-body">
+                    {% for scan in history %}
+                    <tr>
+                        <td>{{ scan.timestamp }}</td>
+                        <td><strong>{{ scan.cci_score }}</strong></td>
+                        <td>{{ scan.fi_score }}</td>
+                        <td>{{ scan.vi_score }}</td>
+                        <td>
+                            <span class="risk-badge {% if scan.risk_level == 'Safe' %}risk-safe{% elif scan.risk_level == 'Monitor' %}risk-monitor{% elif scan.risk_level == 'Caution' %}risk-caution{% elif scan.risk_level == 'High Risk' %}risk-high-risk{% else %}risk-critical{% endif %}" data-trn="risk_{{ scan.risk_level.lower().replace(' ', '_') }}">
+                                {{ scan.risk_level }}
+                            </span>
+                        </td>
+                        <td data-trn="trend_{{ scan.trend.lower() }}">{{ scan.trend }}</td>
+                        <td>{{ scan.euclidean_distance }}</td>
+                        <td><span data-trn="status_synced" style="color:var(--color-safe);">Synced</span></td>
+                    </tr>
+                    {% else %}
+                    <tr id="empty-history-row">
+                        <td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 2rem;" data-trn="history_empty">No scans registered. Perform a test scan to start logs.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- PMTiles vector map client script -->
+<script src="/static/js/map_handler.js"></script>
+{% endblock %}

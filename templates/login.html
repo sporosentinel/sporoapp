@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SporoSentinel{% endblock %}
+
+{% block content %}
+<div class="container" style="display: flex; align-items: center; justify-content: center; flex: 1; padding: 3rem 1.5rem;">
+    <div class="onboard-box animated-fade" style="margin: 0; max-width: 440px;">
+        <h2 style="font-family: var(--font-display); font-size: 1.75rem; margin-bottom: 0.5rem; text-align: center;" data-trn="login_title">Access Platform</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); text-align: center; margin-bottom: 2rem;" data-trn="login_subtitle">
+            Enter your credentials to access the fungal intelligence console.
+        </p>
+
+        {% if error %}
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--color-high-risk); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; margin-bottom: 1.25rem; font-weight: 500; text-align: center;">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/login" method="post">
+            <div class="input-group">
+                <label for="username" class="input-label" data-trn="login_username">Username</label>
+                <input type="text" id="username" name="username" class="input-control" placeholder="e.g. farmer or admin" data-trn="login_username_placeholder" required autocomplete="username">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 1.75rem;">
+                <label for="password" class="input-label" data-trn="login_password">Password</label>
+                <input type="password" id="password" name="password" class="input-control" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 0.8rem; font-size: 1rem;" data-trn="login_submit_btn">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Credentials Helper Card -->
+        <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 0.8rem;">
+            <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;" data-trn="login_demo_title">Demo Access Accounts:</p>
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; color: var(--text-secondary);">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🌾 <strong data-trn="login_demo_farmer">Farmer</strong>: <code style="color:var(--accent-primary)">farmer</code> / <code style="color:var(--accent-primary)">farmer123</code></span>
+                    <span style="font-size: 0.7rem; color: var(--color-safe);" data-trn="login_demo_offline">Offline-First</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🛡️ <strong data-trn="login_demo_admin">Admin</strong>: <code style="color:var(--accent-primary)">admin</code> / <code style="color:var(--accent-primary)">admin123</code></span>
+                    <span style="font-size: 0.7rem; color: #3b82f6;" data-trn="login_demo_online">Online Only</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

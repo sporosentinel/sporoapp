@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Portal - SporoSentinel{% endblock %}
+
+{% block content %}
+<div class="container animated-fade">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-family: var(--font-display); font-size: 1.85rem;" data-trn="role_admin">Administrator Portal</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary);" data-trn="admin_subtitle">Online global risk analytics & mycotoxin mapping dashboard</p>
+        </div>
+        
+        <!-- Map Control Toggle Buttons -->
+        <div style="display: flex; gap: 0.5rem;">
+            <button id="global-map-btn" class="btn btn-secondary btn-outline" style="padding: 0.5rem 1rem;" data-trn="load_global_risk_btn">Load Global Heatmap</button>
+            <button id="load-sample-global-btn" class="btn" style="padding: 0.5rem 1rem;" data-trn="btn_load_sample_global">Load Sample Global Risk Map</button>
+        </div>
+    </div>
+
+    <!-- Analytics KPI Cards -->
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 1.5rem;">
+        <div class="card">
+            <h4 style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;" data-trn="kpi_avg_risk">Average Global Risk</h4>
+            <p style="font-size: 2.25rem; font-weight: 700; color: var(--color-caution); margin-top: 0.5rem;">49.2 / 100</p>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;" data-trn="kpi_avg_risk_sub">Caution status active</p>
+        </div>
+        <div class="card">
+            <h4 style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;" data-trn="kpi_active_sensors">Active Sensors</h4>
+            <p style="font-size: 2.25rem; font-weight: 700; color: var(--accent-primary); margin-top: 0.5rem;">1,248</p>
+            <p style="font-size: 0.75rem; color: var(--color-safe); margin-top: 0.25rem;" data-trn="kpi_active_sensors_sub">100% online rate</p>
+        </div>
+        <div class="card">
+            <h4 style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;" data-trn="kpi_critical_outbreaks">Critical Outbreaks</h4>
+            <p style="font-size: 2.25rem; font-weight: 700; color: var(--color-high-risk); margin-top: 0.5rem;">3 Regions</p>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;" data-trn="kpi_critical_outbreaks_sub">Quarantine protocols deployed</p>
+        </div>
+        <div class="card">
+            <h4 style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;" data-trn="kpi_aflatoxin">Aflatoxin Detections</h4>
+            <p style="font-size: 2.25rem; font-weight: 700; color: var(--color-critical); margin-top: 0.5rem;">14 Batches</p>
+            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;" data-trn="kpi_aflatoxin_sub">Aflatoxin B1 >20 ppb</p>
+        </div>
+    </div>
+
+    <!-- Global Map Card -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h3 class="card-title" data-trn="admin_map_title">Global Fungal Contamination & Mycotoxin Map</h3>
+                <p class="card-subtitle" style="margin-bottom:0;" data-trn="admin_map_subtitle">Visualizing spore density (Aspergillus/Penicillium) and mycotoxin risk levels</p>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem; background: rgba(0,0,0,0.2); padding: 0.25rem; border-radius: 0.5rem; border: 1px solid var(--border-color);">
+                <button id="toggle-fungus-layer" class="btn" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" data-trn="btn_fungus_density">Fungus Density</button>
+                <button id="toggle-mycotoxin-layer" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" data-trn="btn_mycotoxin_level">Mycotoxin Level</button>
+            </div>
+        </div>
+
+        <div id="admin-map" class="map-container" style="height: 440px;"></div>
+    </div>
+
+    <div class="card-grid" style="grid-template-columns: 2fr 1fr;">
+        <!-- Historical trends visualization -->
+        <div class="card">
+            <h3 class="card-title" data-trn="admin_trends">Historical Fungal Contamination Trends</h3>
+            <p class="card-subtitle" data-trn="trends_subtitle">Monthly aggregate contamination fluctuations by pathogen type</p>
+            
+            <!-- Custom HTML5 Trend Bar Graph demonstrating linear-dashboard layout -->
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                        <span data-trn="pathogen_aspergillus">Aspergillus flavus (Aflatoxin B1)</span>
+                        <span style="font-weight: 700; color: var(--color-high-risk);" data-trn="trend_rising">Rising</span>
+                    </div>
+                    <div style="height: 0.5rem; width:100%; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:75%; background:var(--color-high-risk);"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                        <span data-trn="pathogen_penicillium">Penicillium verrucosum (Ochratoxin A)</span>
+                        <span style="font-weight: 700; color: var(--color-caution);" data-trn="trend_stable">Stable</span>
+                    </div>
+                    <div style="height: 0.5rem; width:100%; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:48%; background:var(--color-caution);"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                        <span data-trn="pathogen_fusarium">Fusarium graminearum (Deoxynivalenol)</span>
+                        <span style="font-weight: 700; color: var(--color-safe);" data-trn="trend_declining">Declining</span>
+                    </div>
+                    <div style="height: 0.5rem; width:100%; background:var(--border-color); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:23%; background:var(--color-safe);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regional risk ranking table -->
+        <div class="card">
+            <h3 class="card-title" data-trn="regions_title">Risk Rankings & Analytics</h3>
+            <p class="card-subtitle" data-trn="rankings_subtitle">Highest risk regions sorted by contamination index</p>
+            
+            <div class="table-container">
+                <table style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th data-trn="region_col">Region</th>
+                            <th data-trn="risk_col">Risk</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regional-rankings-body">
+                        <!-- Filled dynamically by script -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Initialize MapLibre Map for Admin Global Dashboard
+        const map = new maplibregl.Map({
+            container: 'admin-map',
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }
+                },
+                layers: [{
+                    id: 'osm-layer',
+                    type: 'raster',
+                    source: 'osm'
+                }]
+            },
+            center: [20, 20], // Global centered view
+            zoom: 2
+        });
+
+        // Add navigation controls
+        map.addControl(new maplibregl.NavigationControl());
+
+        // Regional Rankings and Mock Map Heatmap overlays
+        const regions = [
+            { name: "Aspergillus-prone South", score: 84.2, myco: "0.45 ppm", details: "Critical aflatoxin development" },
+            { name: "High-humidity Coastal", score: 68.5, myco: "0.15 ppm", details: "Damp penicillium sporulation" },
+            { name: "Western Drylands", score: 34.0, myco: "0.08 ppm", details: "Moderate monitoring required" },
+            { name: "Northern Grain Belt", score: 12.0, myco: "0.02 ppm", details: "Safe hermetic storage" }
+        ];
+        // Draw Regional Rankings table
+        const rankingBody = document.getElementById("regional-rankings-body");
+        
+        function drawTable() {
+            rankingBody.innerHTML = "";
+            const activeLang = localStorage.getItem("sporo_lang") || "en";
+            const dict = translations[activeLang] || translations["en"];
+            
+            const regionKeyMap = {
+                "Aspergillus-prone South": "region_south",
+                "High-humidity Coastal": "region_coastal",
+                "Western Drylands": "region_drylands",
+                "Northern Grain Belt": "region_north"
+            };
+
+            regions.forEach(reg => {
+                const tr = document.createElement("tr");
+                let badgeClass = "risk-safe";
+                if (reg.score > 80) badgeClass = "risk-critical";
+                else if (reg.score > 60) badgeClass = "risk-high-risk";
+                else if (reg.score > 30) badgeClass = "risk-caution";
+                
+                const regionKey = regionKeyMap[reg.name] || "unknown";
+                const trnName = dict[regionKey] || reg.name;
+
+                tr.innerHTML = `
+                    <td style="font-weight:600;" data-trn="${regionKey}">${trnName}</td>
+                    <td><span class="risk-badge ${badgeClass}">${reg.score}</span></td>
+                `;
+                rankingBody.appendChild(tr);
+            });
+        }
+
+        drawTable();
+
+        // Track active heatmaps
+        let activeMarkers = [];
+
+        function clearMarkers() {
+            activeMarkers.forEach(m => m.remove());
+            activeMarkers = [];
+        }
+
+        // Add heat/risk points to map
+        function loadRiskPoints(multiplier = 1.0) {
+            clearMarkers();
+            
+            const activeLang = localStorage.getItem("sporo_lang") || "en";
+            const dict = translations[activeLang] || translations["en"];
+
+            // Map coordinates for mock global locations
+            const locations = [
+                { coords: [78.9629, 20.5937], name: "India Central", score: 65 * multiplier, color: "var(--color-caution)", key: "loc_india_central" },
+                { coords: [77.5946, 12.9716], name: "India South", score: 85 * multiplier, color: "var(--color-critical)", key: "loc_india_south" },
+                { coords: [88.3639, 22.5726], name: "India Coastal East", score: 72 * multiplier, color: "var(--color-high-risk)", key: "loc_india_coastal_east" },
+                { coords: [-95.7129, 37.0902], name: "US Grain Hub", score: 25 * multiplier, color: "var(--color-monitor)", key: "loc_us_grain_hub" },
+                { coords: [-51.9253, -14.2350], name: "Brazil Storage Bin", score: 58 * multiplier, color: "var(--color-caution)", key: "loc_brazil_storage_bin" },
+                { coords: [104.1954, 35.8617], name: "China Grain Silo", score: 79 * multiplier, color: "var(--color-high-risk)", key: "loc_china_grain_silo" },
+                { coords: [2.2137, 46.2276], name: "France Wheat Belt", score: 18 * multiplier, color: "var(--color-safe)", key: "loc_france_wheat_belt" }
+            ];
+
+            locations.forEach(loc => {
+                // Create custom markup marker
+                const el = document.createElement('div');
+                el.style.width = '24px';
+                el.style.height = '24px';
+                el.style.borderRadius = '50%';
+                el.style.background = loc.color;
+                el.style.border = '2px solid white';
+                el.style.opacity = '0.75';
+                el.style.cursor = 'pointer';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justify = 'center';
+                el.style.boxShadow = '0 0 10px ' + loc.color;
+                el.innerHTML = `<span style="font-size:7px; font-weight:700; color:white;">${Math.round(loc.score)}</span>`;
+
+                const trnLocName = dict[loc.key] || loc.name;
+                const trnIndexLabel = dict["map_popup_index"] || "Contamination Index";
+
+                const marker = new maplibregl.Marker({ element: el })
+                    .setLngLat(loc.coords)
+                    .setPopup(new maplibregl.Popup({ offset: 25 })
+                    .setHTML(`<strong>${trnLocName}</strong><br>${trnIndexLabel}: ${Math.round(loc.score)}`))
+                    .addTo(map);
+                
+                activeMarkers.push(marker);
+            });
+        }
+
+        // "Load Sample Global Risk Map" Button
+        document.getElementById("load-sample-global-btn").addEventListener("click", () => {
+            loadRiskPoints(1.1);
+            map.flyTo({ center: [78.9629, 20.5937], zoom: 4 });
+        });
+
+        // Toggle buttons
+        const fnBtn = document.getElementById("toggle-fungus-layer");
+        const myBtn = document.getElementById("toggle-mycotoxin-layer");
+
+        fnBtn.addEventListener("click", () => {
+            fnBtn.className = "btn";
+            myBtn.className = "btn btn-secondary";
+            loadRiskPoints(1.0);
+        });
+
+        myBtn.addEventListener("click", () => {
+            myBtn.className = "btn";
+            fnBtn.className = "btn btn-secondary";
+            loadRiskPoints(0.8); // Shift scores slightly for mycotoxins
+        });
+
+        // Listen for language changes to update markers and table
+        document.getElementById("lang-selector")?.addEventListener("change", () => {
+            drawTable();
+            const activeMultiplier = myBtn.classList.contains("btn-secondary") ? 1.0 : 0.8;
+            loadRiskPoints(activeMultiplier);
+        });
+
+        // Initialize with base risk markers
+        loadRiskPoints(1.0);
+    });
+</script>
+{% endblock %}
